@@ -8,6 +8,21 @@ use Illuminate\Support\Facades\Auth;
 
 class UsersController extends Controller
 {
+    public function __construct()
+    {
+        /*
+        应用Laravel中间件方法来验证。两个参数，第一个为中间件的名称，第二个为要进行过滤的动作
+        except 为除了以下动作外的动作都需要验证
+        */
+        $this->middleware('auth', [
+            'except' => ['show', 'create', 'store']
+        ]);
+
+        $this->middleware('guest', [
+            'only' => ['create']
+        ]);
+    }
+
     //
     public function create(){
         return view("users.create");
@@ -19,11 +34,16 @@ class UsersController extends Controller
 
     public function edit(User $user)
     {
+        //验证是否为当前用户
+        $this->authorize('update', $user);
+
         return view('users.edit', compact('user'));
     }
 
     public function update(User $user, Request $request)
     {
+        $this->authorize('update', $user);
+
         $this->validate($request, [
             'name' => 'required|max:50',
             'password' => 'nullable|confirmed|min:6'
